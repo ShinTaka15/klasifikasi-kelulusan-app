@@ -93,12 +93,37 @@ data_scaled[numerical_cols] = scaler.transform(data_scaled[numerical_cols])
 data_final = selector.transform(data_scaled)
 
 # ===========================
-# PREDIKSI
+# PREDIKSI + DEBUG LOG
 # ===========================
 if st.button("🔍 Prediksi Status Remidial"):
+
+    st.subheader("🧪 LOG DEBUG")
+
+    # Log 1: Input sebelum preprocessing
+    st.write("### 🔹 Input Data Awal")
+    st.write(input_data)
+
+    # Log 2: Setelah ordinal mapping
+    st.write("### 🔹 Setelah Ordinal Mapping")
+    st.write(input_data)
+
+    # Log 3: Setelah Scaling
+    st.write("### 🔹 Setelah Scaling (Numerical Only)")
+    st.write(pd.DataFrame(data_scaled, columns=input_data.columns))
+
+    # Log 4: Setelah SelectKBest
+    st.write("### 🔹 Data Final untuk Model (Setelah SelectKBest)")
+    st.write(pd.DataFrame(data_final))
+
+    # Log 5: Prediksi dan Probabilitas
     prediction = svm_model.predict(data_final)[0]
     prob = svm_model.predict_proba(data_final)[0]
 
+    st.write("### 🔹 Output Prediksi Mentah")
+    st.write(f"Prediction (0/1): {prediction}")
+    st.write(f"Probabilitas: {prob}")
+
+    # Hasil akhir status
     status = "Tidak Remidial" if prediction == 0 else "Remidial"
 
     st.subheader("📌 Hasil Prediksi")
@@ -109,4 +134,6 @@ if st.button("🔍 Prediksi Status Remidial"):
     st.write(f"Probabilitas Remidial: **{prob[1]:.2f}**")
 
     st.success("Prediksi berhasil diproses!")
+
+
 
