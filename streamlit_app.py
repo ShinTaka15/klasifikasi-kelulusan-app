@@ -27,7 +27,7 @@ st.write("Masukkan data siswa berikut untuk memprediksi apakah siswa **Remidial*
 col1, col2 = st.columns(2)
 
 with col1:
-    Hours_Studied = st.number_input("Hours_Studied", 0, 20, 5)
+    Hours_Studied = st.number_input("Hours_Studied", 0, 44, 5)
     Attendance = st.number_input("Attendance (%)", 0, 100, 85)
     Sleep_Hours = st.number_input("Sleep_Hours", 0, 12, 7)
     Previous_Scores = st.number_input("Previous_Scores", 0, 100, 70)
@@ -109,3 +109,4 @@ if st.button("🔍 Prediksi Status Remidial"):
     st.write(f"Probabilitas Remidial: **{prob[1]:.2f}**")
 
     st.success("Prediksi berhasil diproses!")
+
