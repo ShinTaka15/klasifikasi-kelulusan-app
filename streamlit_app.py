@@ -12,7 +12,7 @@ from sklearn.metrics import confusion_matrix, roc_curve, auc
 st.markdown("""
 <style>
     .main {
-        background-color: #F8F9FA;
+        background-color: #000000;
     }
     .card {
         padding: 20px;
@@ -206,3 +206,4 @@ if st.button("🔍 Prediksi Status Remidial"):
         st.write(data_scaled)
         st.write("Final feature set:")
         st.write(data_final)
+
