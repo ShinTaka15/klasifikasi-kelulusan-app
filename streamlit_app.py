@@ -124,7 +124,7 @@ if st.button("🔍 Prediksi Status Remidial"):
     st.write(f"Probabilitas: {prob}")
 
     # Hasil akhir status
-    status = "Tidak Remidial" if prediction == 1 else "Remidial"
+    status = "Tidak Remidial" if prediction == "Lulus" else "Remidial"
 
     st.subheader("📌 Hasil Prediksi")
     st.write(f"**Status:** {status}")
@@ -134,6 +134,7 @@ if st.button("🔍 Prediksi Status Remidial"):
     st.write(f"Probabilitas Remidial: **{prob[1]:.2f}**")
 
     st.success("Prediksi berhasil diproses!")
+
 
 
 
