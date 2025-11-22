@@ -2,33 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import confusion_matrix, roc_curve, auc
-
-# ===========================
-# CUSTOM CSS (UI MODERN)
-# ===========================
-st.markdown("""
-<style>
-    .main {
-        background-color: #000000;
-    }
-    .card {
-        padding: 20px;
-        background-color: white;
-        border-radius: 12px;
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-    }
-    .stButton>button {
-        background-color: #4CAF50;
-        color: white;
-        padding: 10px 30px;
-        border-radius: 10px;
-    }
-</style>
-""", unsafe_allow_html=True)
 
 # ===========================
 # LOAD MODEL
@@ -46,13 +19,11 @@ selected_features = artefacts["selected_features"]
 # TITLE
 # ===========================
 st.title("📘 Prediksi Status Remidial Siswa")
-st.write("Masukkan data siswa berikut untuk mengetahui apakah siswa **Remidial** atau **Tidak Remidial**.")
+st.write("Masukkan data siswa berikut untuk memprediksi apakah siswa **Remidial** atau **Tidak Remidial**.")
 
 # ===========================
-# INPUT FORM
+# DEFINISI INPUT USER
 # ===========================
-st.markdown("<div class='card'>", unsafe_allow_html=True)
-
 col1, col2 = st.columns(2)
 
 with col1:
@@ -74,14 +45,14 @@ with col2:
     Tutoring_Sessions = st.number_input("Tutoring_Sessions", 0, 10, 1)
     Teacher_Quality = st.selectbox("Teacher_Quality", ["Low", "Medium", "High"])
     Learning_Disabilities = st.selectbox("Learning_Disabilities", ["No", "Yes"])
-    Parental_Education_Level = st.selectbox("Parental_Education_Level", ["High School", "College", "Postgraduate"])
+    Parental_Education_Level = st.selectbox(
+        "Parental_Education_Level", ["High School", "College", "Postgraduate"]
+    )
     Distance_from_Home = st.selectbox("Distance_from_Home", ["Near", "Moderate", "Far"])
     Gender = st.selectbox("Gender", ["Male", "Female"])
 
-st.markdown("</div>", unsafe_allow_html=True)
-
 # ===========================
-# DATAFRAME INPUT
+# BENTUKKAN DATAFRAME
 # ===========================
 input_data = pd.DataFrame([{
     "Hours_Studied": Hours_Studied,
@@ -106,104 +77,35 @@ input_data = pd.DataFrame([{
 }])
 
 # ===========================
-# PREPROCESSING
+# PREPROCESSING SESUAI MODEL
 # ===========================
+
+# 1️⃣ Map ordinal
 for col in input_data.columns:
     if input_data[col].dtype == "object":
         input_data[col] = input_data[col].map(ordinal_mapping).fillna(0)
 
+# 2️⃣ Pastikan hanya kolom numerik yang di-scale
 data_scaled = input_data.copy()
 data_scaled[numerical_cols] = scaler.transform(data_scaled[numerical_cols])
 
+# 3️⃣ SelectKBest untuk memilih fitur yang digunakan model
 data_final = selector.transform(data_scaled)
 
 # ===========================
-# PREDIKSI UTAMA + VISUALISASI
+# PREDIKSI
 # ===========================
 if st.button("🔍 Prediksi Status Remidial"):
-
     prediction = svm_model.predict(data_final)[0]
     prob = svm_model.predict_proba(data_final)[0]
 
-    status = "Tidak Remidial" if prediction == "Lulus" else "Remidial"
+    status = "Tidak Remidial" if prediction == "Lulus" else "Remidial" 
 
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
     st.subheader("📌 Hasil Prediksi")
     st.write(f"**Status:** {status}")
+
+    st.subheader("📊 Probabilitas")
     st.write(f"Probabilitas Tidak Remidial: **{prob[0]:.2f}**")
     st.write(f"Probabilitas Remidial: **{prob[1]:.2f}**")
-    st.markdown("</div>", unsafe_allow_html=True)
 
-    # =======================
-    # VISUALISASI PROBABILITAS
-    # =======================
-    st.subheader("📊 Probability Chart")
-
-    fig, ax = plt.subplots(figsize=(6, 2))
-    ax.bar(["Tidak Remidial", "Remidial"], prob)
-    plt.title("Probability Distribution")
-    st.pyplot(fig)
-
-    # =======================
-    # CONFUSION MATRIX (TRAIN DATA)
-    # =======================
-    st.subheader("📉 Confusion Matrix (Data Training)")
-
-    try:
-        y_true = artefacts["y_true"]
-        y_pred_train = artefacts["y_pred_train"]
-
-        cm = confusion_matrix(y_true, y_pred_train)
-
-        fig_cm, ax_cm = plt.subplots()
-        sns.heatmap(cm, annot=True, cmap="Blues", fmt="d")
-        plt.title("Confusion Matrix")
-        plt.xlabel("Predicted")
-        plt.ylabel("Actual")
-        st.pyplot(fig_cm)
-    except:
-        st.info("Confusion Matrix tidak tersedia karena data y_true tidak disimpan.")
-
-    # =======================
-    # ROC CURVE
-    # =======================
-    st.subheader("📈 ROC Curve")
-
-    try:
-        fpr, tpr, _ = roc_curve(y_true, artefacts["y_prob_train"])
-        roc_auc = auc(fpr, tpr)
-
-        fig_roc, ax_roc = plt.subplots()
-        ax_roc.plot(fpr, tpr, label=f"AUC = {roc_auc:.2f}")
-        ax_roc.plot([0, 1], [0, 1], linestyle="--")
-        plt.title("ROC Curve")
-        plt.xlabel("False Positive Rate")
-        plt.ylabel("True Positive Rate")
-        plt.legend()
-        st.pyplot(fig_roc)
-    except:
-        st.info("ROC Curve tidak tersedia karena probabilitas training tidak disimpan.")
-
-    # =======================
-    # FEATURE IMPORTANCE (SelectKBest)
-    # =======================
-    st.subheader("📌 Feature Importance (SelectKBest Scores)")
-
-    try:
-        scores = selector.scores_
-        fig_imp, ax_imp = plt.subplots(figsize=(8, 4))
-        ax_imp.barh(selected_features, scores[:len(selected_features)])
-        plt.title("Feature Scores")
-        st.pyplot(fig_imp)
-    except:
-        st.info("Feature importance tidak tersedia.")
-
-    # DEBUG LOG
-    with st.expander("🔧 Debug Log"):
-        st.write("Input awal:")
-        st.write(input_data)
-        st.write("Scaled:")
-        st.write(data_scaled)
-        st.write("Final feature set:")
-        st.write(data_final)
-
+    st.success("Prediksi berhasil diproses!")
