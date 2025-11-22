@@ -96,13 +96,8 @@ data_final = selector.transform(data_scaled)
 # PREDIKSI
 # ===========================
 if st.button("🔍 Prediksi Status Remidial"):
-
     prediction = svm_model.predict(data_final)[0]
     prob = svm_model.predict_proba(data_final)[0]
-
-    # Pastikan probabilitas merujuk ke kelas yang benar
-    prob_tidak = prob[list(svm_model.classes_).index(0)]
-    prob_remidial = prob[list(svm_model.classes_).index(1)]
 
     status = "Tidak Remidial" if prediction == 0 else "Remidial"
 
@@ -110,8 +105,7 @@ if st.button("🔍 Prediksi Status Remidial"):
     st.write(f"**Status:** {status}")
 
     st.subheader("📊 Probabilitas")
-    st.write(f"Probabilitas Tidak Remidial: **{prob_tidak:.2f}**")
-    st.write(f"Probabilitas Remidial: **{prob_remidial:.2f}**")
+    st.write(f"Probabilitas Tidak Remidial: **{prob[0]:.2f}**")
+    st.write(f"Probabilitas Remidial: **{prob[1]:.2f}**")
 
     st.success("Prediksi berhasil diproses!")
-
